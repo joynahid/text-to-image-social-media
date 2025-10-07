@@ -1,0 +1,51 @@
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+.venv-workers
+venv/
+ENV/
+env/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Tests
+tests/
+*.png
+
+# TypeScript/JS (not needed for Python app)
+src/
+tsconfig.json
+package-lock.json
+
+# Wrangler (Cloudflare)
+wrangler.toml
+.wrangler/
+
+# Other
+.DS_Store
+*.log
+worker.py
+functions/
+

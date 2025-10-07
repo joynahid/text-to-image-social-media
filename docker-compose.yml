@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: text-to-image-api
+    ports:
+      - "8004:8000"
+    environment:
+      - PORT=8000
+      - WORKERS=4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      - "dokploy.enable=true"
+      - "dokploy.name=text-to-image-api"
+      - "dokploy.port=8000"

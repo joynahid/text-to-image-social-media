@@ -1,0 +1,15 @@
+[project]
+name = "wandering-waterfall-e545"
+version = "0.1.0"
+description = "Text to Image Generator API with FastAPI and Pillow"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "pillow",
+]
+
+[dependency-groups]
+dev = [
+    "workers-py",
+ "uvicorn",
+]
