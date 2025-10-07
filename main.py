@@ -61,6 +61,7 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 font-weight: 300;
                 padding: {padding}px;
                 line-height: 1.4;
+                letter-spacing: -0.03em;
                 overflow: hidden;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
