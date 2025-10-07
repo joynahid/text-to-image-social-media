@@ -152,11 +152,13 @@ async def generate_image(
 ):
     """
     Generate a high-quality PNG image from HTML content.
+    
+    Renders at 2x resolution for crisp, high-quality text.
 
     Parameters:
     - text: HTML content to display (supports full HTML/CSS)
-    - width: Image width (default: 800)
-    - height: Image height (default: 1000)
+    - width: Image width in pixels (output size)
+    - height: Image height in pixels (output size)
     - font_size: Base font size (default: 36)
     - padding: Padding around content (default: 20)
     
@@ -169,20 +171,36 @@ async def generate_image(
     - Custom styling: "<span style='color: #ff0000;'>Red text</span>"
     """
     try:
-        # Create HTML from template
-        html_content = create_html_template(text, width, height, font_size, padding)
+        # Render at 2x resolution for high quality
+        scale = 2
+        render_width = width * scale
+        render_height = height * scale
+        render_font_size = font_size * scale
+        render_padding = padding * scale
+        
+        # Create HTML from template with scaled dimensions
+        html_content = create_html_template(
+            text, 
+            render_width, 
+            render_height, 
+            render_font_size, 
+            render_padding
+        )
         
         # Get browser instance
         browser = await get_browser()
         
-        # Create a new page
-        page = await browser.new_page(viewport={"width": width, "height": height})
+        # Create a new page with scaled viewport
+        page = await browser.new_page(
+            viewport={"width": render_width, "height": render_height},
+            device_scale_factor=1  # We're handling scaling ourselves
+        )
         
         try:
             # Set content and wait for it to load
             await page.set_content(html_content, wait_until="networkidle")
             
-            # Take screenshot with exact dimensions
+            # Take screenshot at high resolution
             screenshot_bytes = await page.screenshot(
                 type="png",
                 full_page=False,
