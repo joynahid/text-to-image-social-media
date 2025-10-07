@@ -1,11 +1,12 @@
 [project]
 name = "wandering-waterfall-e545"
 version = "0.1.0"
-description = "Text to Image Generator API with FastAPI and Pillow"
+description = "Text to Image Generator API with FastAPI and HTML rendering"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi",
     "pillow",
+    "html2image>=2.0.0",
 ]
 
 [dependency-groups]
