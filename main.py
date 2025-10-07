@@ -131,19 +131,38 @@ async def generate_image(
         
         # Create temporary directory for output
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Initialize Html2Image
-            hti = Html2Image(output_path=temp_dir, size=(width, height))
+            # Initialize Html2Image with Chrome flags for containerized environments
+            hti = Html2Image(
+                output_path=temp_dir,
+                size=(width, height),
+                custom_flags=[
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--disable-software-rasterizer',
+                    '--disable-extensions',
+                    '--headless',
+                ]
+            )
             
             # Generate image
             output_file = "output.png"
-            hti.screenshot(
+            result = hti.screenshot(
                 html_str=html_content,
                 save_as=output_file,
                 size=(width, height)
             )
             
             # Read the generated image
-            image_path = os.path.join(temp_dir, output_file)
+            # html2image returns a list of filenames
+            if result and len(result) > 0:
+                image_path = os.path.join(temp_dir, result[0])
+            else:
+                image_path = os.path.join(temp_dir, output_file)
+            
+            # Check if file exists
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"Screenshot was not generated at {image_path}")
             
             # Open with PIL and convert to bytes
             with Image.open(image_path) as img:
