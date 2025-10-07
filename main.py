@@ -143,6 +143,12 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
             i, em {{
                 font-style: italic;
             }}
+            
+            hr {{
+                border: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                margin: 1.5em 0;
+            }}
         </style>
     </head>
     <body>
