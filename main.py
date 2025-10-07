@@ -103,6 +103,10 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 letter-spacing: -0.03em;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                text-rendering: optimizeLegibility;
+                font-smooth: always;
             }}
             
             .content {{
@@ -190,20 +194,24 @@ async def generate_image(
         # Get browser instance
         browser = await get_browser()
         
-        # Create a new page with scaled viewport
+        # Create a new page with scaled viewport and high DPI
         page = await browser.new_page(
             viewport={"width": render_width, "height": render_height},
-            device_scale_factor=1  # We're handling scaling ourselves
+            device_scale_factor=2  # 2x device pixel ratio for smooth rendering
         )
         
         try:
             # Set content and wait for it to load
             await page.set_content(html_content, wait_until="networkidle")
             
-            # Take screenshot at high resolution
+            # Wait a bit for fonts to fully render
+            await page.wait_for_timeout(100)
+            
+            # Take screenshot at high resolution with quality settings
             screenshot_bytes = await page.screenshot(
                 type="png",
                 full_page=False,
+                animations="disabled",  # Disable animations for consistent output
             )
             
             return Response(
