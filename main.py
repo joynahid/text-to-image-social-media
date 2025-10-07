@@ -31,6 +31,7 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
     <html>
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width={width}, height={height}">
         <style>
             @font-face {{
                 font-family: 'Manrope';
@@ -51,16 +52,15 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 box-sizing: border-box;
             }}
             
-            html {{
+            html, body {{
                 width: {width}px;
                 height: {height}px;
+                margin: 0;
+                padding: 0;
                 background: linear-gradient(180deg, rgb(30, 30, 30) 0%, rgb(0, 0, 0) 100%);
             }}
             
             body {{
-                width: {width}px;
-                height: {height}px;
-                background: linear-gradient(180deg, rgb(30, 30, 30) 0%, rgb(0, 0, 0) 100%);
                 color: white;
                 font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
                 font-size: {font_size}px;
@@ -68,9 +68,9 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 padding: {padding}px;
                 line-height: 1.4;
                 letter-spacing: -0.03em;
-                overflow: hidden;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                box-sizing: border-box;
             }}
             
             .content {{
@@ -173,8 +173,12 @@ async def generate_image(
             if not os.path.exists(image_path):
                 raise FileNotFoundError(f"Screenshot was not generated at {image_path}")
             
-            # Open with PIL and convert to bytes
+            # Open with PIL and crop to exact size
             with Image.open(image_path) as img:
+                # Ensure the image is exactly the requested size
+                if img.size != (width, height):
+                    img = img.crop((0, 0, width, height))
+                
                 img_byte_arr = BytesIO()
                 img.save(img_byte_arr, format="PNG")
                 img_byte_arr.seek(0)
