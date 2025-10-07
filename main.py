@@ -56,8 +56,9 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 height: {height}px;
                 background: linear-gradient(180deg, rgb(30, 30, 30) 0%, rgb(0, 0, 0) 100%);
                 color: white;
-                font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
                 font-size: {font_size}px;
+                font-weight: 300;
                 padding: {padding}px;
                 line-height: 1.4;
                 overflow: hidden;
