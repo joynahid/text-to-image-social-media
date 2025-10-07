@@ -98,9 +98,8 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 color: white;
                 font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
                 font-size: {font_size}px;
-                font-weight: 300;
+                font-weight: 200;
                 line-height: 1.4;
-                letter-spacing: -0.03em;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
                 -webkit-font-smoothing: antialiased;
