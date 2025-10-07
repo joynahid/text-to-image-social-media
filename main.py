@@ -149,6 +149,27 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 border-top: 1px solid rgba(255, 255, 255, 0.2);
                 margin: 1.5em 0;
             }}
+            
+            table {{
+                border-collapse: collapse;
+                width: 100%;
+                margin: 1em 0;
+            }}
+            
+            th, td {{
+                text-align: left;
+                padding: 0.75em 1em;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            
+            th {{
+                font-weight: bold;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }}
+            
+            tr:last-child td {{
+                border-bottom: none;
+            }}
         </style>
     </head>
     <body>
