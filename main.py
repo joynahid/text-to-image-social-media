@@ -19,6 +19,69 @@ def clean_text(text: str) -> str:
     return cleaned.strip()
 
 
+def wrap_text(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
+    """
+    Wrap text to fit within max_width by breaking at word boundaries.
+    Also respects existing newline characters in the text.
+    """
+    lines = []
+    
+    # Split by existing newlines first
+    paragraphs = text.split('\n')
+    
+    for paragraph in paragraphs:
+        if not paragraph.strip():
+            # Preserve empty lines
+            lines.append('')
+            continue
+            
+        words = paragraph.split()
+        current_line = []
+        
+        for word in words:
+            # Try adding this word to current line
+            test_line = ' '.join(current_line + [word])
+            bbox = font.getbbox(test_line)
+            line_width = bbox[2] - bbox[0]
+            
+            if line_width <= max_width:
+                current_line.append(word)
+            else:
+                # Line is too long, save current line and start new one
+                if current_line:
+                    lines.append(' '.join(current_line))
+                    current_line = [word]
+                else:
+                    # Single word is too long, need to break the word
+                    if word:
+                        # Check if the single word fits
+                        word_bbox = font.getbbox(word)
+                        word_width = word_bbox[2] - word_bbox[0]
+                        if word_width > max_width:
+                            # Break the word character by character
+                            char_line = ""
+                            for char in word:
+                                test_char_line = char_line + char
+                                char_bbox = font.getbbox(test_char_line)
+                                char_width = char_bbox[2] - char_bbox[0]
+                                if char_width <= max_width:
+                                    char_line = test_char_line
+                                else:
+                                    if char_line:
+                                        lines.append(char_line)
+                                    char_line = char
+                            if char_line:
+                                current_line = [char_line]
+                        else:
+                            current_line = [word]
+        
+        # Add remaining words
+        if current_line:
+            lines.append(' '.join(current_line))
+    
+    return lines
+
+
 @router.get("/")
 async def generate_image(
     text: str = Query(
@@ -89,8 +152,23 @@ async def generate_image(
             # Use default font as last resort
             font = ImageFont.load_default()
 
-        # Draw text with anti-aliasing
-        draw.text((padding, padding), text, fill=(255, 255, 255), font=font)
+        # Calculate maximum text width
+        max_text_width = scaled_width - (2 * padding)
+        
+        # Wrap text into multiple lines
+        lines = wrap_text(text, font, max_text_width)
+        
+        # Calculate line height (with some spacing between lines)
+        bbox = font.getbbox("Ay")  # Use a tall character to get line height
+        line_height = bbox[3] - bbox[1]
+        line_spacing = int(line_height * 0.3)  # 30% spacing between lines
+        total_line_height = line_height + line_spacing
+        
+        # Draw each line of text
+        y_position = padding
+        for line in lines:
+            draw.text((padding, y_position), line, fill=(255, 255, 255), font=font)
+            y_position += total_line_height
 
         # Scale down for anti-aliasing effect
         img = img.resize((width, height), Image.Resampling.LANCZOS)
