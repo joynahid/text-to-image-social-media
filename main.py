@@ -6,7 +6,7 @@ import os
 
 app = FastAPI(title="Text to Image Generator")
 
-router = APIRouter(prefix="/image-api")
+router = APIRouter()
 
 
 # Font path
@@ -123,8 +123,10 @@ async def health_check():
     return {"status": "healthy", "message": "Text to Image Generator API"}
 
 
+# Include router with /image-api prefix
+app.include_router(router, prefix="/image-api")
+
 if __name__ == "__main__":
     import uvicorn
 
-    app.include_router(router)
     uvicorn.run(app, host="0.0.0.0", port=8000)
