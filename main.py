@@ -70,14 +70,26 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
         <style>
             @font-face {{
                 font-family: 'Manrope';
+                src: url('file://{font_dir}/Manrope-ExtraLight.ttf') format('truetype');
+                font-weight: 200;
+                font-style: normal;
+            }}
+            @font-face {{
+                font-family: 'Manrope';
+                src: url('file://{font_dir}/Manrope-Light.ttf') format('truetype');
+                font-weight: 300;
+                font-style: normal;
+            }}
+            @font-face {{
+                font-family: 'Manrope';
                 src: url('file://{font_dir}/Manrope-Regular.ttf') format('truetype');
-                font-weight: normal;
+                font-weight: 400;
                 font-style: normal;
             }}
             @font-face {{
                 font-family: 'Manrope';
                 src: url('file://{font_dir}/Manrope-Bold.ttf') format('truetype');
-                font-weight: bold;
+                font-weight: 700;
                 font-style: normal;
             }}
             
