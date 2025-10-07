@@ -51,6 +51,12 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 box-sizing: border-box;
             }}
             
+            html {{
+                width: {width}px;
+                height: {height}px;
+                background: linear-gradient(180deg, rgb(30, 30, 30) 0%, rgb(0, 0, 0) 100%);
+            }}
+            
             body {{
                 width: {width}px;
                 height: {height}px;
