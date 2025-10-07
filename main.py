@@ -69,7 +69,8 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
             
             .content {{
                 width: 100%;
-                height: 100%;
+                height: auto;
+                max-height: 100%;
             }}
             
             p {{
