@@ -1,14 +1,50 @@
 from fastapi import APIRouter, FastAPI, Query
 from fastapi.responses import Response
-from html2image import Html2Image
-from PIL import Image
-from io import BytesIO
+from playwright.async_api import async_playwright
+from contextlib import asynccontextmanager
+import asyncio
 import os
-import tempfile
 
-app = FastAPI(title="HTML to Image Generator")
+# Global browser instance for reuse
+browser_instance = None
+playwright_instance = None
+browser_lock = asyncio.Lock()
 
+
+@asynccontextmanager
+async def lifespan(app_instance: FastAPI):
+    """Lifespan context manager for startup and shutdown"""
+    # Startup: Initialize browser
+    await get_browser()
+    yield
+    # Shutdown: Close browser
+    global browser_instance, playwright_instance
+    try:
+        if browser_instance:
+            await browser_instance.close()
+    except Exception:
+        pass  # Browser may already be closed
+    try:
+        if playwright_instance:
+            await playwright_instance.stop()
+    except Exception:
+        pass  # Playwright may already be stopped
+
+
+app = FastAPI(title="HTML to Image Generator", lifespan=lifespan)
 router = APIRouter()
+
+
+async def get_browser():
+    """Get or create browser instance"""
+    global browser_instance, playwright_instance
+    async with browser_lock:
+        if browser_instance is None:
+            playwright_instance = await async_playwright().start()
+            browser_instance = await playwright_instance.chromium.launch(
+                args=['--no-sandbox', '--disable-setuid-sandbox']
+            )
+    return browser_instance
 
 
 def create_html_template(content: str, width: int, height: int, font_size: int, padding: int) -> str:
@@ -31,7 +67,6 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
     <html>
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width={width}, height={height}">
         <style>
             @font-face {{
                 font-family: 'Manrope';
@@ -55,8 +90,7 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
             html, body {{
                 width: {width}px;
                 height: {height}px;
-                margin: 0;
-                padding: 0;
+                overflow: hidden;
                 background: linear-gradient(180deg, rgb(30, 30, 30) 0%, rgb(0, 0, 0) 100%);
             }}
             
@@ -65,18 +99,18 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
                 font-size: {font_size}px;
                 font-weight: 300;
-                padding: {padding}px;
                 line-height: 1.4;
                 letter-spacing: -0.03em;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
-                box-sizing: border-box;
             }}
             
             .content {{
-                width: 100%;
-                height: auto;
-                max-height: 100%;
+                padding: {padding}px;
+                width: {width}px;
+                height: {height}px;
+                box-sizing: border-box;
+                background: linear-gradient(180deg, rgb(30, 30, 30) 0%, rgb(0, 0, 0) 100%);
             }}
             
             p {{
@@ -138,59 +172,33 @@ async def generate_image(
         # Create HTML from template
         html_content = create_html_template(text, width, height, font_size, padding)
         
-        # Create temporary directory for output
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Initialize Html2Image with Chrome flags for containerized environments
-            hti = Html2Image(
-                output_path=temp_dir,
-                size=(width, height),
-                custom_flags=[
-                    '--no-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu',
-                    '--disable-software-rasterizer',
-                    '--disable-extensions',
-                    '--headless',
-                ]
+        # Get browser instance
+        browser = await get_browser()
+        
+        # Create a new page
+        page = await browser.new_page(viewport={"width": width, "height": height})
+        
+        try:
+            # Set content and wait for it to load
+            await page.set_content(html_content, wait_until="networkidle")
+            
+            # Take screenshot with exact dimensions
+            screenshot_bytes = await page.screenshot(
+                type="png",
+                full_page=False,
             )
             
-            # Generate image
-            output_file = "output.png"
-            result = hti.screenshot(
-                html_str=html_content,
-                save_as=output_file,
-                size=(width, height)
+            return Response(
+                content=screenshot_bytes,
+                media_type="image/png",
+                headers={
+                    "Cache-Control": "public, max-age=3600",
+                    "Content-Disposition": "inline",
+                },
             )
-            
-            # Read the generated image
-            # html2image returns a list of filenames
-            if result and len(result) > 0:
-                image_path = os.path.join(temp_dir, result[0])
-            else:
-                image_path = os.path.join(temp_dir, output_file)
-            
-            # Check if file exists
-            if not os.path.exists(image_path):
-                raise FileNotFoundError(f"Screenshot was not generated at {image_path}")
-            
-            # Open with PIL and crop to exact size
-            with Image.open(image_path) as img:
-                # Ensure the image is exactly the requested size
-                if img.size != (width, height):
-                    img = img.crop((0, 0, width, height))
-                
-                img_byte_arr = BytesIO()
-                img.save(img_byte_arr, format="PNG")
-                img_byte_arr.seek(0)
-                
-                return Response(
-                    content=img_byte_arr.getvalue(),
-                    media_type="image/png",
-                    headers={
-                        "Cache-Control": "public, max-age=3600",
-                        "Content-Disposition": "inline",
-                    },
-                )
+        finally:
+            # Always close the page to free resources
+            await page.close()
 
     except Exception as e:
         return Response(
