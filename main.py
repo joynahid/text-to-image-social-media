@@ -4,6 +4,7 @@ from playwright.async_api import async_playwright
 from contextlib import asynccontextmanager
 import asyncio
 import os
+import base64
 
 # Global browser instance for reuse
 browser_instance = None
@@ -47,6 +48,16 @@ async def get_browser():
     return browser_instance
 
 
+def get_font_base64(font_path: str) -> str:
+    """Convert font file to base64 data URL"""
+    try:
+        with open(font_path, 'rb') as f:
+            font_data = base64.b64encode(f.read()).decode('utf-8')
+            return f"data:font/truetype;charset=utf-8;base64,{font_data}"
+    except Exception:
+        return ""
+
+
 def create_html_template(content: str, width: int, height: int, font_size: int, padding: int) -> str:
     """
     Create HTML template with the given content and styling.
@@ -59,8 +70,12 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
     - <span style="..."> for custom styling
     - And any other HTML/CSS you want!
     """
-    # Get absolute path to fonts
+    # Get absolute path to fonts and convert to base64
     font_dir = os.path.abspath("fonts")
+    font_extralight = get_font_base64(os.path.join(font_dir, "Manrope-ExtraLight.ttf"))
+    font_light = get_font_base64(os.path.join(font_dir, "Manrope-Light.ttf"))
+    font_regular = get_font_base64(os.path.join(font_dir, "Manrope-Regular.ttf"))
+    font_bold = get_font_base64(os.path.join(font_dir, "Manrope-Bold.ttf"))
     
     return f"""
     <!DOCTYPE html>
@@ -70,25 +85,25 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
         <style>
             @font-face {{
                 font-family: 'Manrope';
-                src: url('file://{font_dir}/Manrope-ExtraLight.ttf') format('truetype');
+                src: url('{font_extralight}') format('truetype');
                 font-weight: 200;
                 font-style: normal;
             }}
             @font-face {{
                 font-family: 'Manrope';
-                src: url('file://{font_dir}/Manrope-Light.ttf') format('truetype');
+                src: url('{font_light}') format('truetype');
                 font-weight: 300;
                 font-style: normal;
             }}
             @font-face {{
                 font-family: 'Manrope';
-                src: url('file://{font_dir}/Manrope-Regular.ttf') format('truetype');
+                src: url('{font_regular}') format('truetype');
                 font-weight: 400;
                 font-style: normal;
             }}
             @font-face {{
                 font-family: 'Manrope';
-                src: url('file://{font_dir}/Manrope-Bold.ttf') format('truetype');
+                src: url('{font_bold}') format('truetype');
                 font-weight: 700;
                 font-style: normal;
             }}
@@ -130,6 +145,7 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
             
             p {{
                 margin-bottom: 0.8em;
+                font-weight: 200;
             }}
             
             p:last-child {{
