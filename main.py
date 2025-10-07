@@ -1,10 +1,13 @@
-from fastapi import FastAPI, Query
+from fastapi import APIRouter, FastAPI, Query
 from fastapi.responses import Response
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import os
 
 app = FastAPI(title="Text to Image Generator")
+
+router = APIRouter(prefix="/image-api")
+
 
 # Font path
 FONT_PATH = "fonts/Manrope-Bold.ttf"
@@ -16,7 +19,7 @@ def clean_text(text: str) -> str:
     return cleaned.strip()
 
 
-@app.get("/")
+@router.get("/")
 async def generate_image(
     text: str = Query(
         default="Hello, World!", description="Text to render on the image"
@@ -114,7 +117,7 @@ async def generate_image(
         )
 
 
-@app.get("/health")
+@router.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "message": "Text to Image Generator API"}
@@ -123,4 +126,5 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
+    app.include_router(router)
     uvicorn.run(app, host="0.0.0.0", port=8000)
