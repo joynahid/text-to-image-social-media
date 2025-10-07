@@ -59,16 +59,19 @@ def create_html_template(content: str, width: int, height: int, font_size: int, 
                 font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
                 font-size: {font_size}px;
                 font-weight: 300;
-                padding: {padding}px;
                 line-height: 1.4;
                 overflow: hidden;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                display: flex;
+                align-items: flex-start;
+                justify-content: flex-start;
             }}
             
             .content {{
-                width: 100%;
-                height: 100%;
+                width: calc(100% - {padding * 2}px);
+                height: calc(100% - {padding * 2}px);
+                margin: {padding}px;
             }}
             
             p {{
